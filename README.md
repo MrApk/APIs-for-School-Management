@@ -67,7 +67,7 @@ school-project/
 Clone repository:
 
 ```bash
-git clone <your-repo-url>
+git clone (https://github.com/MrApk/APIs-for-School-Management.git)
 cd school-project
 ```
 
@@ -260,8 +260,3 @@ Can be deployed on:
 
 Ankit Prasad
 
----
-
-## License
-
-MIT License
