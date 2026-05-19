@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>List Schools</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+</head>
+<body>
+
+<div class="container">
+  <h2>Nearby Schools</h2>
+
+  <button onclick="useLocation()">Use My Location</button>
+
+  <div id="map"></div>
+
+  <ul id="schoolList"></ul>
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+const map = L.map('map').setView([28.6139, 77.2090], 13);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+let marker;
+
+map.on('click', function(e) {
+  const { lat, lng } = e.latlng;
+
+  if(marker) map.removeLayer(marker);
+  marker = L.marker([lat, lng]).addTo(map);
+
+  fetchSchools(lat, lng);
+});
+
+function useLocation() {
+  navigator.geolocation.getCurrentPosition((position) => {
+    const lat = position.coords.latitude;
+    const lon = position.coords.longitude;
+
+    map.setView([lat, lon], 15);
+
+    if(marker) map.removeLayer(marker);
+    marker = L.marker([lat, lon]).addTo(map);
+
+    fetchSchools(lat, lon);
+  });
+}
+
+async function fetchSchools(lat, lon) {
+  const res = await fetch(`/listSchools?latitude=${lat}&longitude=${lon}`);
+
+  const schools = await res.json();
+
+  const list = document.getElementById('schoolList');
+  list.innerHTML = '';
+
+  schools.forEach((school) => {
+    list.innerHTML += `
+      <li>
+        <strong>${school.name}</strong><br>
+        ${school.address}<br>
+        Distance: ${school.distance.toFixed(2)} km
+      </li>
+    `;
+  });
+}
+</script>
+
+</body>
+</html>

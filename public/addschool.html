@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Add School</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet"
+   href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+</head>
+<body>
+
+<div class="container">
+  <h2>Add School</h2>
+
+  <input id="name" placeholder="School Name">
+  <input id="address" placeholder="Address">
+  
+  <input id="lat" placeholder="Latitude" readonly>
+  <input id="lon" placeholder="Longitude" readonly>
+  
+  <button onclick="addSchool()">Add School</button>
+
+  <hr>
+  
+  <input id="search" placeholder="Search location">
+  <div id="map"></div>
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+const map = L.map('map').setView([28.6139, 77.2090], 13);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
+.addTo(map);
+
+let marker;
+
+map.on('click', function(e) {
+  const { lat, lng } = e.latlng;
+
+  document.getElementById('lat').value = lat;
+  document.getElementById('lon').value = lng;
+
+  if(marker) map.removeLayer(marker);
+  marker = L.marker([lat, lng]).addTo(map);
+});
+
+document.getElementById('search').addEventListener('change', async function() {
+  const query = this.value;
+
+  const res = await fetch(
+    `https://nominatim.openstreetmap.org/search?format=json&q=${query}`
+  );
+
+  const data = await res.json();
+
+  if(data.length > 0) {
+    const lat = data[0].lat;
+    const lon = data[0].lon;
+
+    map.setView([lat, lon], 15);
+
+    document.getElementById('lat').value = lat;
+    document.getElementById('lon').value = lon;
+
+    if(marker) map.removeLayer(marker);
+    marker = L.marker([lat, lon]).addTo(map);
+  }
+});
+
+async function addSchool() {
+  const body = {
+    name: document.getElementById('name').value,
+    address: document.getElementById('address').value,
+    latitude: document.getElementById('lat').value,
+    longitude: document.getElementById('lon').value
+  };
+
+  const res = await fetch('/addSchool', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(body)
+  });
+
+  const result = await res.json();
+  alert(result.message || result.error);
+}
+</script>
+
+</body>
+</html>
